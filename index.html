@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="PsicoQuiz — teste um pedacinho do módulo de História e Origens da Psicologia e nos ajude com um feedback rápido.">
+<meta name="theme-color" content="#faf9f6">
+<title>PsicoQuiz · Teste rápido — História e Origens</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #faf9f6; --surface: #ffffff; --surface2: #f3f1ec; --border: #e5e2db;
+    --accent: #3b5bdb; --accent2: #7c5cbf; --success: #2e9d6b; --error: #c94a3a;
+    --warning: #c98a1f; --text: #1a1a1a; --text-dim: #4a4a4a; --text-dimmer: #7a7a7a;
+    --feedback-correct-text: #1e7a52; --feedback-wrong-text: #9c3626;
+    --radius: 14px; --radius-sm: 8px;
+  }
+  body.theme-dark {
+    --bg: #0f172a; --surface: #1a2438; --surface2: #243149; --border: #2d3b52;
+    --accent: #6366f1; --accent2: #7c5cbf; --success: #3ecf8e; --error: #f87171;
+    --warning: #f7b955; --text: #f1f5f9; --text-dim: #cbd5e1; --text-dimmer: #94a3b8;
+    --feedback-correct-text: #a8f0cf; --feedback-wrong-text: #ffa8a8;
+  }
+  .theme-toggle {
+    position: fixed; top: 14px; right: 14px; z-index: 1000;
+    width: 40px; height: 40px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%; border: 1.5px solid var(--border); background: var(--surface);
+    color: var(--text); font-size: 17px; cursor: pointer;
+    transition: transform .2s ease, border-color .2s ease, background .25s ease;
+  }
+  .theme-toggle:hover { transform: translateY(-2px); border-color: var(--accent); }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-weight: 400; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 24px 16px 60px; }
+
+  /* ===== INTRO / LANDING DE TESTE ===== */
+  #intro { width: 100%; max-width: 640px; margin-bottom: 34px; }
+  .intro-tag { display: inline-block; font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); background: rgba(79,142,247,.12); border: 1px solid rgba(79,142,247,.25); border-radius: 20px; padding: 4px 14px; margin-bottom: 16px; }
+  .intro-title { font-family: 'DM Serif Display', serif; font-size: clamp(28px, 7vw, 40px); line-height: 1.18; color: var(--text); margin-bottom: 14px; }
+  .intro-title em { font-style: italic; color: var(--accent); }
+  .intro-text { font-size: 15px; color: var(--text-dim); line-height: 1.65; margin-bottom: 14px; }
+  .intro-text strong { color: var(--text); font-weight: 600; }
+  .intro-steps { background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 18px 20px; margin: 20px 0; }
+  .intro-step { display: flex; gap: 12px; align-items: flex-start; padding: 9px 0; font-size: 13.5px; color: var(--text-dim); line-height: 1.5; }
+  .intro-step:not(:last-child) { border-bottom: 1px solid var(--border); }
+  .intro-step-num { flex-shrink: 0; width: 22px; height: 22px; border-radius: 6px; background: var(--surface2); color: var(--accent); font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+  .intro-cta { width: 100%; background: linear-gradient(135deg, var(--accent), var(--accent2)); border: none; border-radius: var(--radius-sm); color: #fff; font-family: 'DM Sans', sans-serif; font-size: 15.5px; font-weight: 600; padding: 16px; cursor: pointer; margin-top: 6px; transition: opacity .2s, transform .2s; }
+  .intro-cta:hover { opacity: .92; transform: translateY(-1px); }
+
+  /* ===== OUTROS MÓDULOS (visual, desativado) ===== */
+  #outros-modulos { width: 100%; max-width: 640px; margin-top: 30px; }
+  .outros-label { font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--text-dimmer); margin-bottom: 12px; text-align: center; }
+  .outros-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; opacity: .5; }
+  .outro-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius-sm); padding: 14px 10px; text-align: center; cursor: not-allowed; filter: grayscale(45%); }
+  .outro-icon { font-size: 19px; display: block; margin-bottom: 6px; }
+  .outro-name { font-size: 11.5px; color: var(--text-dim); line-height: 1.3; }
+  .outro-lock { font-size: 9.5px; color: var(--text-dimmer); margin-top: 4px; letter-spacing: .04em; text-transform: uppercase; }
+
+  /* ===== QUIZ (reaproveitado do módulo original) ===== */
+  .module-header { width: 100%; max-width: 720px; margin-bottom: 32px; text-align: center; display: none; }
+  .module-tag { display: inline-block; font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); background: rgba(79,142,247,.12); border: 1px solid rgba(79,142,247,.25); border-radius: 20px; padding: 4px 14px; margin-bottom: 14px; }
+  .module-title { font-family: 'DM Serif Display', serif; font-size: clamp(28px, 6vw, 42px); line-height: 1.15; color: var(--text); margin-bottom: 8px; }
+  .module-title em { font-style: italic; color: var(--accent); }
+  .module-subtitle { font-size: 15px; color: var(--text-dim); font-weight: 300; }
+  #level-select { width: 100%; max-width: 720px; display: none; }
+  .levels-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 8px; }
+  .level-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 18px 14px; cursor: pointer; transition: all .2s ease; text-align: center; position: relative; overflow: hidden; }
+  .level-card::before { content: ''; position: absolute; inset: 0; opacity: 0; transition: opacity .2s; }
+  .level-card.l1::before { background: linear-gradient(135deg, rgba(79,142,247,.08), transparent); }
+  .level-card.l2::before { background: linear-gradient(135deg, rgba(124,92,191,.08), transparent); }
+  .level-card.l3::before { background: linear-gradient(135deg, rgba(79,142,247,.08), transparent); }
+  .level-card:hover:not(.locked)::before { opacity: 1; }
+  .level-card:hover:not(.locked) { border-color: rgba(79,142,247,.4); transform: translateY(-2px); }
+  .level-card.locked { opacity: .4; cursor: not-allowed; }
+  .level-card.completed { border-color: var(--success); }
+  .level-icon { font-size: 24px; margin-bottom: 8px; display: block; }
+  .level-name { font-family: 'DM Serif Display', serif; font-size: 15px; margin-bottom: 3px; }
+  .level-desc { font-size: 11px; color: var(--text-dim); line-height: 1.4; }
+  .level-status { margin-top: 8px; font-size: 10px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+  .level-status.done { color: var(--success); }
+  .level-status.locked-txt { color: var(--text-dimmer); }
+  .level-status.available { color: var(--accent); }
+  #quiz-screen { width: 100%; max-width: 720px; display: none; }
+  .quiz-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  .back-btn { background: none; border: 1px solid var(--border); color: var(--text-dim); font-family: 'DM Sans', sans-serif; font-size: 13px; padding: 6px 14px; border-radius: 20px; cursor: pointer; transition: all .2s; }
+  .back-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .quiz-level-badge { font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--text-dim); }
+  .progress-bar-wrap { background: var(--surface2); border-radius: 99px; height: 6px; width: 100%; margin-bottom: 28px; overflow: hidden; }
+  .progress-bar-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width .4s ease; }
+  .question-counter { font-size: 12px; color: var(--text-dimmer); margin-bottom: 10px; text-align: right; }
+  .question-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 28px 24px; margin-bottom: 16px; }
+  .question-text { font-family: 'DM Serif Display', serif; font-size: clamp(16px, 3.5vw, 21px); line-height: 1.4; color: var(--text); }
+  .options-list { display: flex; flex-direction: column; gap: 10px; }
+  .option-btn { background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius-sm); padding: 14px 18px; text-align: left; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 14px; cursor: pointer; transition: all .18s ease; display: flex; align-items: flex-start; gap: 12px; line-height: 1.45; }
+  .option-letter { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; min-width: 24px; border-radius: 6px; background: var(--surface2); font-size: 12px; font-weight: 600; color: var(--text-dim); transition: all .18s; }
+  .option-btn:hover:not(:disabled) { border-color: var(--accent); background: rgba(79,142,247,.06); }
+  .option-btn:hover:not(:disabled) .option-letter { background: var(--accent); color: #fff; }
+  .option-btn.correct { border-color: var(--success); background: rgba(62,207,142,.08); }
+  .option-btn.correct .option-letter { background: var(--success); color: #fff; }
+  .option-btn.wrong { border-color: var(--error); background: rgba(247,95,95,.08); }
+  .option-btn.wrong .option-letter { background: var(--error); color: #fff; }
+  .option-btn.reveal-correct { border-color: var(--success); background: rgba(62,207,142,.05); opacity: .7; }
+  .option-btn:disabled { cursor: default; }
+  .feedback-box { border-radius: var(--radius-sm); padding: 16px 18px; margin-bottom: 16px; font-size: 14px; line-height: 1.6; display: none; animation: slideUp .25s ease; }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .feedback-box.correct { background: rgba(62,207,142,.1); border: 1px solid rgba(62,207,142,.3); color: var(--feedback-correct-text); }
+  .feedback-box.wrong { background: rgba(247,95,95,.1); border: 1px solid rgba(247,95,95,.3); color: var(--feedback-wrong-text); }
+  .feedback-label { font-weight: 600; font-size: 13px; letter-spacing: .04em; margin-bottom: 5px; text-transform: uppercase; }
+  .feedback-norm { display: block; margin-top: 8px; font-size: 12px; color: var(--text-dim); font-style: italic; }
+  .next-btn { width: 100%; background: linear-gradient(135deg, var(--accent), var(--accent2)); border: none; border-radius: var(--radius-sm); color: #fff; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; padding: 15px; cursor: pointer; transition: opacity .2s, transform .2s; display: none; }
+  .next-btn:hover { opacity: .9; transform: translateY(-1px); }
+  #result-screen { width: 100%; max-width: 720px; display: none; text-align: center; }
+  .result-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 40px 28px; }
+  .result-emoji { font-size: 52px; margin-bottom: 16px; display: block; }
+  .result-title { font-family: 'DM Serif Display', serif; font-size: 28px; margin-bottom: 8px; }
+  .result-score { font-size: 48px; font-weight: 600; color: var(--accent); margin: 16px 0 4px; }
+  .result-score-label { font-size: 13px; color: var(--text-dim); margin-bottom: 24px; }
+  .result-message { font-size: 15px; color: var(--text-dim); line-height: 1.6; margin-bottom: 28px; max-width: 460px; margin-left: auto; margin-right: auto; }
+  .result-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn-outline { background: none; border: 1.5px solid var(--border); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; padding: 12px 22px; border-radius: var(--radius-sm); cursor: pointer; transition: all .2s; }
+  .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); border: none; color: #fff; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; padding: 12px 22px; border-radius: var(--radius-sm); cursor: pointer; text-decoration:none; display:inline-block; }
+  .btn-primary:disabled { opacity: .4; cursor: not-allowed; }
+
+  /* ===== BANNER FINAL -> FORMULÁRIO ===== */
+  #feedback-banner { width: 100%; max-width: 720px; display: none; background: linear-gradient(135deg, rgba(59,91,219,.10), rgba(124,92,191,.08)); border: 1.5px solid rgba(59,91,219,.3); border-radius: var(--radius); padding: 30px 26px; text-align: center; margin-top: 8px; }
+  #feedback-banner h3 { font-family: 'DM Serif Display', serif; font-size: 23px; margin-bottom: 10px; color: var(--text); }
+  #feedback-banner p { font-size: 14.5px; color: var(--text-dim); line-height: 1.6; margin-bottom: 22px; max-width: 460px; margin-left: auto; margin-right: auto; }
+
+  @media (max-width: 520px) {
+    .levels-grid { grid-template-columns: repeat(2, 1fr); }
+    .outros-grid { grid-template-columns: repeat(2, 1fr); }
+    .question-card { padding: 20px 16px; }
+    .option-btn { padding: 12px 14px; font-size: 13px; }
+  }
+</style>
+</head>
+<body>
+<button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" aria-label="Alternar tema claro/escuro">🌙</button>
+<script>
+(function(){
+  var isDark = false;
+  try { isDark = localStorage.getItem('pq_theme') === 'dark'; } catch(e) {}
+  if (isDark) document.body.classList.add('theme-dark');
+  var btn = document.getElementById('theme-toggle');
+  if (btn) btn.textContent = isDark ? '☀️' : '🌙';
+  var meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute('content', isDark ? '#0f172a' : '#faf9f6');
+})();
+function toggleTheme(){
+  var isDark = document.body.classList.toggle('theme-dark');
+  try { localStorage.setItem('pq_theme', isDark ? 'dark' : 'light'); } catch(e) {}
+  var btn = document.getElementById('theme-toggle');
+  if (btn) btn.textContent = isDark ? '☀️' : '🌙';
+  var meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute('content', isDark ? '#0f172a' : '#faf9f6');
+}
+</script>
+
+<!-- ===== INTRO ===== -->
+<div id="intro">
+  <div class="intro-tag">Convite para teste</div>
+  <h1 class="intro-title">Psico<em>Quiz</em></h1>
+  <p class="intro-text">Oi! Estamos testando uma nova forma de estudar psicologia: <strong>você responde, erra, entende — e fixa de verdade.</strong> Cada questão vem com um feedback que explica o porquê da resposta certa, não só se você acertou ou errou.</p>
+  <p class="intro-text">Preparamos <strong>3 níveis do módulo de História e Origens da Psicologia</strong> — conteúdo de disciplina introdutória, sem pré-requisito nenhum — pra você experimentar. Leva uns 10 minutos.</p>
+  <div class="intro-steps">
+    <div class="intro-step"><span class="intro-step-num">1</span><span>Responda os 3 níveis abaixo, no seu celular mesmo, sem pressa.</span></div>
+    <div class="intro-step"><span class="intro-step-num">2</span><span>Ao final do nível 3, você verá um botão para um formulário rapidinho (menos de 1 minuto).</span></div>
+    <div class="intro-step"><span class="intro-step-num">3</span><span>Seu feedback ajuda a melhorar essa ferramenta antes do lançamento oficial.</span></div>
+  </div>
+  <button class="intro-cta" onclick="mostrarQuiz()">Começar o teste →</button>
+
+  <div id="outros-modulos">
+    <p class="outros-label">outros módulos do PsicoQuiz (em breve)</p>
+    <div class="outros-grid">
+      <div class="outro-card"><span class="outro-icon">🧩</span><div class="outro-name">Behaviorismo</div><div class="outro-lock">🔒</div></div>
+      <div class="outro-card"><span class="outro-icon">🛋️</span><div class="outro-name">Psicanálise</div><div class="outro-lock">🔒</div></div>
+      <div class="outro-card"><span class="outro-icon">🪑</span><div class="outro-name">Gestalt-Terapia</div><div class="outro-lock">🔒</div></div>
+      <div class="outro-card"><span class="outro-icon">🌱</span><div class="outro-name">Humanismo</div><div class="outro-lock">🔒</div></div>
+      <div class="outro-card"><span class="outro-icon">💭</span><div class="outro-name">TCC</div><div class="outro-lock">🔒</div></div>
+      <div class="outro-card"><span class="outro-icon">🎯</span><div class="outro-name">Terapias Contextuais</div><div class="outro-lock">🔒</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== QUIZ ===== -->
+<header class="module-header" id="module-header">
+  <div class="module-tag">Módulo 01 · Fundamentos Históricos</div>
+  <h1 class="module-title">História <em>e Origens</em></h1>
+  <p class="module-subtitle">O nascimento da psicologia científica · 3 níveis de teste</p>
+</header>
+
+<div id="level-select">
+  <button class="back-btn" style="display:inline-flex;align-items:center;margin-bottom:18px;" onclick="voltarIntro()">← Voltar à introdução</button>
+  <div class="levels-grid">
+    <div class="level-card l1" id="card-1" onclick="startLevel(1)">
+      <span class="level-icon">🧭</span>
+      <div class="level-name">Nível 1</div>
+      <div class="level-desc">O nascimento de uma ciência</div>
+      <div class="level-status available" id="status-1">Disponível</div>
+    </div>
+    <div class="level-card l2 locked" id="card-2">
+      <span class="level-icon">🧠</span>
+      <div class="level-name">Nível 2</div>
+      <div class="level-desc">Raízes filosóficas e fisiológicas</div>
+      <div class="level-status locked-txt" id="status-2">🔒 Bloqueado</div>
+    </div>
+    <div class="level-card l3 locked" id="card-3">
+      <span class="level-icon">🌧️</span>
+      <div class="level-name">Nível 3</div>
+      <div class="level-desc">Psicofísica e métodos</div>
+      <div class="level-status locked-txt" id="status-3">🔒 Bloqueado</div>
+    </div>
+  </div>
+
+  <div id="feedback-banner">
+    <h3>🙌 Você concluiu os 3 níveis de teste!</h3>
+    <p>Agora é a parte mais importante pra gente: seu feedback. Leva menos de 1 minuto e ajuda demais a melhorar o PsicoQuiz antes do lançamento.</p>
+    <a class="btn-primary" href="https://docs.google.com/forms/d/e/1FAIpQLSf2xj2Iv6QyLukF4l7Dp3Ofwmo7wlErsWTaWQNyLx-nH4Y8dQ/viewform?usp=publish-editor" target="_blank" rel="noopener">Responder feedback →</a>
+  </div>
+</div>
+
+<div id="quiz-screen">
+  <div class="quiz-top">
+    <button class="back-btn" onclick="backToMenu()">← Voltar</button>
+    <span class="quiz-level-badge" id="quiz-level-label">Nível 1</span>
+  </div>
+  <div class="progress-bar-wrap">
+    <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+  </div>
+  <div class="question-counter" id="question-counter">Pergunta 1 de 10</div>
+  <div class="question-card">
+    <p class="question-text" id="question-text"></p>
+  </div>
+  <div class="options-list" id="options-list"></div>
+  <div class="feedback-box" id="feedback-box">
+    <div class="feedback-label" id="feedback-label"></div>
+    <div id="feedback-text"></div>
+  </div>
+  <button class="next-btn" id="next-btn" onclick="nextQuestion()">Próxima pergunta →</button>
+</div>
+
+<div id="result-screen">
+  <div class="result-card">
+    <span class="result-emoji" id="result-emoji"></span>
+    <div class="result-title" id="result-title"></div>
+    <div class="result-score" id="result-score"></div>
+    <div class="result-score-label" id="result-score-label"></div>
+    <p class="result-message" id="result-message"></p>
+    <div class="result-actions">
+      <button class="btn-outline" onclick="retryLevel()">Tentar novamente</button>
+      <button class="btn-primary" id="next-level-btn" onclick="goNextLevel()">Próximo nível →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const PASS = 80;
+const MAX_LEVEL = 3;
+const LEVELS = {"1": {"label": "Nível 1 — O nascimento de uma ciência", "questions": [{"q": "Quem é tradicionalmente considerado o fundador da psicologia como ciência experimental?", "correct": 0, "norm": "Boring, História da Psicologia Experimental (1950)", "opts": ["Wilhelm Wundt, que instalou o primeiro laboratório dedicado à psicologia experimental", "Sigmund Freud, criador, em Viena, do método de investigação clínica do inconsciente humano", "William James, autor do primeiro grande tratado de psicologia norte-americano", "John Watson, que propôs uma psicologia restrita ao comportamento observável"], "feedback": "Wundt fundou em Leipzig, em 1879, o primeiro laboratório formal e institucional dedicado à psicologia experimental — o marco convencional do nascimento da disciplina como ciência autônoma. James, Freud e Watson foram decisivos, mas em outras frentes e depois."}, {"q": "Em que ano e cidade situa-se o marco convencional da fundação da psicologia científica?", "correct": 2, "norm": "Boring, História da Psicologia Experimental (1950)", "opts": ["Em 1860, na cidade de Viena, com a publicação dos primeiros trabalhos clínicos", "Em 1890, na Universidade de Harvard, nos Estados Unidos da América", "Em 1879, na cidade alemã de Leipzig, com a criação do laboratório de Wundt", "Em 1900, na cidade de Paris, durante o congresso internacional de psicologia"], "feedback": "O ano de 1879 e a Universidade de Leipzig marcam, por convenção, a fundação da psicologia como ciência: foi quando Wundt destinou um espaço próprio à pesquisa experimental sistemática, com alunos e produção continuada. É uma data simbólica, mas amplamente aceita."}, {"q": "Antes de tornar-se ciência autônoma, a psicologia constituía-se como ramo de quais campos?", "correct": 0, "norm": "Schultz & Schultz, História da Psicologia Moderna (2016)", "opts": ["Da filosofia e da fisiologia, das quais herdou problemas e métodos", "Da medicina e da teologia, que definiam a alma e suas enfermidades", "Da física e da matemática, que ofereciam seus modelos de mensuração", "Da biologia e da antropologia, voltadas à evolução das espécies"], "feedback": "A psicologia nasceu do encontro de duas tradições: a filosofia (que formulava as questões sobre a mente e o conhecimento) e a fisiologia experimental alemã (que oferecia o método de laboratório). Wundt, formado em medicina e fisiologia, foi quem soldou as duas."}, {"q": "O método central empregado por Wundt em seu laboratório era:", "correct": 1, "norm": "Wundt, Princípios de Psicologia Fisiológica (1874)", "opts": ["A associação livre dos conteúdos que ocorriam à mente do participante", "A autobservação controlada de experiências internas sob condições experimentais", "A observação naturalística do comportamento em ambientes do cotidiano", "A análise interpretativa e simbólica dos relatos de sonhos colhidos com cada participante"], "feedback": "Wundt usava a experimentelle Selbstbeobachtung: uma autobservação rigorosamente controlada, ligada a estímulos padronizados e a medidas objetivas (como o tempo de reação). Era bem distinta da introspecção livre e qualitativa que mais tarde seria associada a Titchener."}, {"q": "O objeto de estudo da psicologia de Wundt era, em primeiro plano:", "correct": 2, "norm": "Wundt, Princípios de Psicologia Fisiológica (1874)", "opts": ["O comportamento observável e mensurável de forma pública pelo experimentador", "Os conteúdos inconscientes inferidos a partir de sintomas e atos falhos", "A experiência consciente imediata, analisada sob condições controladas", "As diferenças individuais de inteligência medidas por instrumentos padronizados"], "feedback": "Wundt definia a psicologia como o estudo da experiência imediata — a consciência tal como vivida, antes de interpretá-la como mundo físico. Distinguia-a das ciências naturais, que tratam da experiência mediata. Comportamento, inconsciente e testes pertencem a outras tradições."}, {"q": "A obra que Wundt publicou em 1874, considerada um manifesto fundador da área, foi:", "correct": 3, "norm": "Wundt, Princípios de Psicologia Fisiológica (1874)", "opts": ["A Interpretação dos Sonhos, obra que inaugurou o estudo sistemático do inconsciente humano", "Os Princípios de Psicologia, primeiro grande tratado da psicologia americana", "Os Elementos de Psicofísica, que formularam as leis da sensação humana", "Os Princípios de Psicologia Fisiológica, que delineou o programa da nova ciência"], "feedback": "Nos Grundzüge der physiologischen Psychologie (1874), Wundt traçou o programa de uma psicologia experimental autônoma. Os distratores são, respectivamente, de Freud (1900), James (1890) e Fechner (1860) — todos fundamentais, em outras frentes."}, {"q": "Nos Estados Unidos, a figura pioneira da psicologia, autor de um tratado de 1890, foi:", "correct": 0, "norm": "James, Os Princípios de Psicologia (1890)", "opts": ["William James, que escreveu Os Princípios de Psicologia", "Edward Titchener, que transplantou o estruturalismo para a universidade de Cornell", "John Dewey, que criticou o conceito de arco reflexo na psicologia da época", "Granville Stanley Hall, que fundou a Associação Americana de Psicologia"], "feedback": "William James é o grande nome da psicologia norte-americana inicial; seu Principles of Psychology (1890) influenciou gerações. Titchener, Dewey e Hall também foram centrais nos EUA, mas James é o pioneiro de maior alcance e o autor do tratado de 1890."}, {"q": "Antes mesmo do laboratório de Wundt, qual campo já buscava medir matematicamente a relação entre estímulo e sensação?", "correct": 2, "norm": "Fechner, Elementos de Psicofísica (1860)", "opts": ["A frenologia, que relacionava faculdades mentais a saliências do crânio humano", "O associacionismo, que descrevia como ideias simples se combinam em complexas", "A psicofísica, que estabeleceu leis quantitativas entre estímulo e sensação", "A psicometria, voltada à construção e validação de testes de inteligência"], "feedback": "A psicofísica de Fechner (1860) antecedeu Wundt e mostrou que a relação entre o mundo físico e a sensação podia ser expressa em fórmulas matemáticas — abrindo caminho para uma psicologia experimental. A frenologia, por sua vez, era pseudociência."}, {"q": "A psicologia experimental surgiu institucionalmente sobretudo a partir da tradição:", "correct": 1, "norm": "Schultz & Schultz, História da Psicologia Moderna (2016)", "opts": ["Da filosofia idealista francesa do final do século dezoito", "Da fisiologia experimental das universidades alemãs do século dezenove", "Da medicina clínica das escolas hospitalares da cidade de Paris", "Da psiquiatria descritiva desenvolvida nas instituições hospitalares britânicas do período"], "feedback": "Foi nos laboratórios de fisiologia das universidades alemãs — com Helmholtz, Müller e outros — que se forjaram o método experimental e a cultura de pesquisa que tornaram possível a psicologia de Wundt. O contexto institucional alemão foi decisivo."}, {"q": "Etimologicamente, a palavra “psicologia” combina os termos gregos que significam:", "correct": 3, "norm": "Schultz & Schultz, História da Psicologia Moderna (2016)", "opts": ["“Comportamento” e “medida”, refletindo a vocação experimental da disciplina", "“Cérebro” e “função”, indicando a base biológica dos processos mentais", "“Sensação” e “lei”, em referência direta às formulações da psicofísica", "“Alma” (psyché) e “estudo/discurso” (logos): o estudo da alma ou da mente"], "feedback": "“Psicologia” vem de psyché (alma, sopro vital) e logos (estudo, discurso). O termo circulava desde o século XVI, muito antes de a disciplina se tornar ciência — o que mostra como a reflexão sobre a mente precede em muito sua institucionalização experimental."}]}, "2": {"label": "Nível 2 — Raízes filosóficas e fisiológicas", "questions": [{"q": "A psicofísica de Fechner e o laboratório de Wundt responderam, na prática, a uma objeção famosa de qual filósofo, que negava à psicologia o estatuto de ciência?", "correct": 2, "norm": "Kant, Princípios Metafísicos da Ciência da Natureza (1786)", "opts": ["De David Hume, para quem o eu não passava de um feixe de percepções", "De René Descartes, que separava radicalmente a substância pensante da extensa", "De Immanuel Kant, que julgava a mente insuscetível de medida e de experimento", "De John Locke, que reduzia toda a mente a uma folha em branco preenchida pela experiência"], "feedback": "Kant sustentava que os fenômenos internos, por não se desdobrarem no espaço nem serem mensuráveis, jamais se sujeitariam à matemática e ao experimento — logo, não haveria psicologia científica. Fechner e Wundt, ao medir a sensação e o tempo de reação, responderam na prática a essa objeção."}, {"q": "O dualismo interacionista de Descartes propunha que:", "correct": 0, "norm": "Descartes, As Paixões da Alma (1649)", "opts": ["Mente e corpo são substâncias distintas que interagem, na sua hipótese, pela glândula pineal", "Mente e corpo são, no fundo, uma só e mesma substância vista sob dois atributos inteiramente diferentes", "Apenas o corpo material existe, sendo a mente uma ilusão derivada da matéria", "A mente determina o corpo sem jamais sofrer qualquer influência por parte dele"], "feedback": "Descartes distinguia a res cogitans (pensante) da res extensa (corpórea) e, para explicar como interagiam, apostou na glândula pineal como ponto de contato. Concebeu o corpo como máquina e introduziu a noção mecânica de reflexo — heranças importantes para a fisiologia posterior."}, {"q": "O empirismo britânico, de Locke a Hume, contribuiu para a psicologia ao defender que:", "correct": 3, "norm": "Locke, Ensaio sobre o Entendimento Humano (1690)", "opts": ["As ideias fundamentais são inatas e independentes de toda experiência sensível", "O conhecimento deriva de formas a priori que estruturam a mente desde o início", "A mente é determinada por facultades hereditárias fixas e imutáveis ao longo da vida", "Todo conhecimento provém da experiência, sendo a mente, ao nascer, uma tábula rasa"], "feedback": "Para Locke, a mente nasce como tábula rasa, preenchida pela experiência sensorial. Essa ênfase na experiência (contra as ideias inatas) e o associacionismo de Hume e Hartley moldaram a psicologia, que herdou a pergunta sobre como ideias simples se combinam em complexas."}, {"q": "A “doutrina das energias nervosas específicas”, de Johannes Müller, afirma que:", "correct": 2, "norm": "Müller, Manual de Fisiologia Humana (1838)", "opts": ["Cada nervo conduz impulsos de natureza elétrica idêntica, sem qualquer especialização", "A intensidade da sensação é proporcional ao logaritmo da intensidade do estímulo", "A qualidade da sensação depende do nervo estimulado, não do estímulo em si", "Os nervos sensoriais e motores compartilham as mesmas vias dentro da medula espinhal"], "feedback": "Müller mostrou que a qualidade da experiência (ver, ouvir) depende de qual nervo é ativado, não da natureza do estímulo — pressionar o olho produz luz, não toque. A ideia aproximou a mente da fisiologia e influenciou a teoria sensorial de Helmholtz, seu aluno."}, {"q": "A medição da velocidade do impulso nervoso por Helmholtz teve enorme impacto porque:", "correct": 0, "norm": "Helmholtz, Sobre a Velocidade de Propagação do Estímulo Nervoso (1850)", "opts": ["Mostrou que processos do sistema nervoso ocorrem no tempo e podem ser medidos", "Provou que o impulso nervoso se propaga de forma instantânea pelo corpo todo", "Demonstrou que a alma atua sobre o corpo por meio da glândula pineal", "Confirmou que as faculdades mentais têm sede em saliências específicas do crânio"], "feedback": "Até então supunha-se o impulso nervoso quase instantâneo. Helmholtz mediu sua velocidade (dezenas de metros por segundo), provando que os processos nervosos — e, por extensão, os mentais — ocorrem no tempo e são mensuráveis. Foi um passo crucial rumo à cronometria mental."}, {"q": "Os estudos sobre localização cerebral no século XIX, como os de Broca, contrastaram com a frenologia de Gall porque:", "correct": 1, "norm": "Finger, Origens da Neurociência (1994)", "opts": ["Confirmaram experimentalmente cada uma das faculdades que a frenologia havia postulado", "Basearam a localização em evidência clínica e anatômica, e não em saliências do crânio", "Negaram qualquer relação entre regiões do cérebro e funções psicológicas distintas", "Restringiram o estudo do cérebro à mensuração externa do tamanho da caixa craniana"], "feedback": "A frenologia de Gall inferia traços de caráter por saliências cranianas — pseudociência. Broca, ao correlacionar uma lesão cerebral específica à perda da fala, fundou a localização cerebral em bases clínicas e anatômicas rigorosas. A ideia de localização sobreviveu; o método frenológico, não."}, {"q": "Franz Brentano, contemporâneo de Wundt, propôs uma psicologia do ato cuja noção central era:", "correct": 2, "norm": "Brentano, Psicologia de um Ponto de Vista Empírico (1874)", "opts": ["A decomposição da consciência em sensações, imagens e sentimentos elementares", "A redução de todo fenômeno psíquico a reflexos condicionados observáveis", "A intencionalidade: todo ato psíquico é sempre dirigido a um objeto", "A mensuração logarítmica da relação entre o estímulo físico e a sensação"], "feedback": "Para Brentano, o que define o psíquico é a intencionalidade — todo ato (ver, julgar, desejar) refere-se a um objeto. Sua psicologia do ato (o processo de ver) opôs-se à psicologia do conteúdo de Wundt (o que é visto), e influenciaria a fenomenologia e a Gestalt."}, {"q": "O “método subtrativo” de Donders, importante para a psicologia experimental, propunha:", "correct": 3, "norm": "Donders, Sobre a Velocidade dos Processos Mentais (1868)", "opts": ["Subtrair os erros de medida para isolar a sensação verdadeira do participante", "Remover gradualmente os estímulos, um a um, até encontrar com precisão o limiar absoluto de percepção", "Decompor a consciência em seus elementos por meio da introspecção treinada", "Estimar a duração de um processo mental subtraindo tempos de reação de tarefas distintas"], "feedback": "Donders raciocinou que, se uma tarefa de escolha leva mais tempo que uma reação simples, a diferença mede a duração do processo mental adicional (discriminar, escolher). Essa cronometria mental, herdada da astronomia, tornou-se ferramenta central da psicologia experimental."}, {"q": "A chamada “equação pessoal”, que ajudou a despertar o interesse pelo tempo de reação, surgiu originalmente:", "correct": 0, "norm": "Boring, História da Psicologia Experimental (1950)", "opts": ["Na astronomia, ao constatar que observadores diferiam sistematicamente no registro de eventos", "Na medicina clínica, ao medir o tempo de recuperação dos pacientes após cirurgias de tipos diversos", "Na física, ao calcular a margem de erro dos instrumentos de medição da época", "Na filosofia, ao tentar quantificar a duração subjetiva da experiência consciente"], "feedback": "Astrônomos perceberam que observadores registravam a passagem de uma estrela em momentos ligeiramente diferentes — uma “equação pessoal” individual. O fenômeno revelou que a mente leva tempo para processar, inspirando os estudos de tempo de reação que Wundt incorporaria."}, {"q": "De modo geral, a contribuição da fisiologia alemã do século XIX para o surgimento da psicologia foi:", "correct": 1, "norm": "Schultz & Schultz, História da Psicologia Moderna (2016)", "opts": ["Oferecer uma teoria pronta da consciência que Wundt apenas precisou aplicar", "Fornecer o método experimental e o estudo dos órgãos dos sentidos e do sistema nervoso", "Demonstrar que os processos mentais não podem, em hipótese alguma, ser medidos com algum rigor", "Defender que a introspecção é o único caminho legítimo para conhecer a mente"], "feedback": "A fisiologia alemã (Müller, Helmholtz, Weber, Fechner) deu à psicologia nascente seu método de laboratório e o estudo rigoroso dos sentidos e do sistema nervoso. Wundt, fisiólogo de formação, transferiu essa cultura experimental para o estudo da própria experiência consciente."}]}, "3": {"label": "Nível 3 — Psicofísica e os primeiros métodos", "questions": [{"q": "A Lei de Weber estabelece que:", "correct": 1, "norm": "Weber, De Tactu (1834)", "opts": ["A sensação cresce proporcionalmente ao logaritmo da intensidade do estímulo físico", "A variação mínima perceptível de um estímulo é uma proporção constante de sua intensidade", "Todo estímulo, abaixo de um valor fixo e absoluto, jamais chega a ser percebido", "A intensidade da sensação é sempre diretamente igual à própria intensidade física do estímulo aplicado"], "feedback": "A Lei de Weber afirma que a menor diferença perceptível (ΔI) é uma fração constante do estímulo de partida (ΔI/I = k): quanto mais intenso o estímulo, maior o incremento necessário para se notar a mudança. A formulação logarítmica do distrator A é a Lei de Fechner."}, {"q": "A Lei de Fechner, derivada da de Weber, afirma que:", "correct": 2, "norm": "Fechner, Elementos de Psicofísica (1860)", "opts": ["A menor diferença perceptível corresponde a uma proporção constante da intensidade física do estímulo", "A sensação só ocorre quando o estímulo ultrapassa um limiar absoluto e fixo", "A intensidade da sensação cresce proporcionalmente ao logaritmo da intensidade do estímulo", "A relação entre estímulo e resposta independe por completo da intensidade inicial"], "feedback": "Fechner integrou matematicamente a Lei de Weber e chegou a S = k·log I: a sensação cresce com o logaritmo do estímulo, de modo que aumentos físicos cada vez maiores produzem ganhos sensoriais cada vez menores. A descrição em A é a Lei de Weber — a confusão entre as duas é clássica."}, {"q": "A “diferença apenas perceptível” (jnd), conceito-chave da psicofísica, é:", "correct": 0, "norm": "Fechner, Elementos de Psicofísica (1860)", "opts": ["A menor mudança em um estímulo capaz de ser detectada pelo observador", "O valor mínimo de estímulo necessário para que ele seja notado pela primeira vez", "O ponto em que o observador deixa de distinguir dois estímulos quaisquer entre si", "A intensidade física na qual a sensação atinge o seu valor máximo possível"], "feedback": "A jnd (just noticeable difference) é o menor incremento detectável em um estímulo — a unidade básica com que a psicofísica mede a sensibilidade. O distrator B descreve o limiar absoluto (e não o diferencial): são conceitos vizinhos e frequentemente confundidos."}, {"q": "O objetivo declarado de Fechner em sua psicofísica era:", "correct": 3, "norm": "Fechner, Elementos de Psicofísica (1860)", "opts": ["Construir testes capazes de medir e comparar de forma objetiva a inteligência entre os indivíduos", "Mapear quais regiões do cérebro são responsáveis por cada função mental", "Decompor a consciência em seus elementos por meio da introspecção rigorosa", "Estabelecer uma relação matemática exata entre o corpo (físico) e a mente (sensação)"], "feedback": "Fechner, movido por preocupações tanto científicas quanto filosóficas, buscava uma lei matemática que ligasse o mundo físico ao mundo mental — provar que a mente podia ser medida. Sua psicofísica deu à psicologia nascente a confiança de que o psíquico era quantificável."}, {"q": "Entre os métodos psicofísicos clássicos para determinar limiares está o método:", "correct": 2, "norm": "Fechner, Elementos de Psicofísica (1860)", "opts": ["Da associação livre, em que o participante diz tudo o que lhe ocorre à mente", "Da introspecção analítica de elementos treinada ao longo de muitas sessões", "Dos limites, em que o estímulo é aumentado ou diminuído até mudar a resposta", "Da subtração de tempos de reação entre tarefas de complexidade diferente"], "feedback": "Fechner sistematizou métodos como o dos limites, o dos estímulos constantes e o do ajustamento. No método dos limites, varia-se o estímulo em pequenos passos até o ponto em que a resposta do observador muda — localizando o limiar. Os distratores pertencem a outras tradições."}, {"q": "Hermann Ebbinghaus tornou-se pioneiro ao estudar experimentalmente:", "correct": 0, "norm": "Ebbinghaus, Sobre a Memória (1885)", "opts": ["A memória, usando sílabas sem sentido para controlar a familiaridade do material", "A percepção de movimento aparente entre estímulos luminosos apresentados em sequência", "As diferenças individuais de inteligência por meio de medidas antropométricas", "Os reflexos condicionados em animais submetidos a pareamentos de estímulos"], "feedback": "Ebbinghaus inventou as sílabas sem sentido (como “WID”, “ZOF”) para estudar a memória com material novo e controlado, usando a si mesmo como participante. Foi a primeira investigação experimental rigorosa de um processo mental superior — território que Wundt julgava fora do laboratório."}, {"q": "A “curva do esquecimento” de Ebbinghaus demonstrou que:", "correct": 1, "norm": "Ebbinghaus, Sobre a Memória (1885)", "opts": ["O material aprendido se mantém estável e praticamente intacto ao longo do tempo", "O esquecimento é rápido logo após a aprendizagem e depois desacelera", "A memória melhora espontaneamente nas horas seguintes ao término do estudo", "O esquecimento ocorre em ritmo constante e linear desde o primeiro instante"], "feedback": "Ebbinghaus mostrou que a retenção cai abruptamente nas primeiras horas e dias após a aprendizagem e depois se estabiliza num patamar — a curva do esquecimento. Mediu isso pelo método da economia, comparando o esforço para reaprender uma lista já estudada."}, {"q": "O “método da economia” (savings), criado por Ebbinghaus, media a memória por meio:", "correct": 2, "norm": "Ebbinghaus, Sobre a Memória (1885)", "opts": ["Do número de erros cometidos ao tentar reconhecer itens vistos anteriormente", "Do tempo de reação para responder a cada item de uma lista de palavras", "Da redução no esforço necessário para reaprender um material já estudado antes", "Da quantidade de itens corretamente evocados imediatamente após a apresentação"], "feedback": "No método da economia, Ebbinghaus reaprendia uma lista e media quanto tempo (ou quantas repetições) economizava em relação à primeira vez. Mesmo material aparentemente “esquecido” exigia menos esforço para ser reaprendido — revelando uma retenção que o simples recordar não captava."}, {"q": "O limiar absoluto difere do limiar diferencial porque o absoluto refere-se:", "correct": 0, "norm": "Fechner, Elementos de Psicofísica (1860)", "opts": ["À menor intensidade de um estímulo capaz de ser detectada em metade das vezes", "À menor diferença entre dois estímulos capaz de ser percebida pelo observador", "Ao ponto em que a sensação atinge sua intensidade máxima e satura por completo", "À proporção constante entre o incremento do estímulo e a sua intensidade inicial"], "feedback": "O limiar absoluto é a intensidade mínima detectável de um estímulo (a vela mais fraca visível no escuro); o diferencial é a menor diferença perceptível entre dois estímulos (a jnd). Confundir os dois é um erro frequente — o absoluto trata de detectar; o diferencial, de discriminar."}, {"q": "A importância histórica da psicofísica para a psicologia foi, sobretudo:", "correct": 3, "norm": "Schultz & Schultz, História da Psicologia Moderna (2016)", "opts": ["Demonstrar que o comportamento observável é moldado de forma exclusiva pelo ambiente externo ao organismo", "Provar que a introspecção é o único método capaz de acessar a vida mental", "Mapear as faculdades mentais às diferentes saliências da superfície do crânio", "Mostrar que fenômenos mentais podem ser medidos, abrindo caminho à psicologia experimental"], "feedback": "Ao expressar a relação entre estímulo e sensação em fórmulas, a psicofísica provou que o mental podia ser medido com rigor — refutando na prática a objeção de Kant e fornecendo a Wundt a confiança e as ferramentas para fundar a psicologia experimental."}]}};
+const LEVEL_ICONS = {1:'🧭',2:'🧠',3:'🌧️'};
+
+let unlocked = {1:true, 2:false, 3:false};
+let completed = {1:false, 2:false, 3:false};
+let state = { currentLevel: null, currentQ: 0, score: 0, answered: false };
+
+function mostrarQuiz(){
+  document.getElementById('intro').style.display = 'none';
+  document.getElementById('module-header').style.display = 'block';
+  document.getElementById('level-select').style.display = 'block';
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+function voltarIntro(){
+  document.getElementById('intro').style.display = 'block';
+  document.getElementById('module-header').style.display = 'none';
+  document.getElementById('level-select').style.display = 'none';
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function startLevel(lvl) {
+  if (!LEVELS[lvl] || !unlocked[lvl]) return;
+  state.currentLevel = lvl; state.currentQ = 0; state.score = 0; state.answered = false;
+  document.getElementById('level-select').style.display = 'none';
+  document.getElementById('result-screen').style.display = 'none';
+  document.getElementById('quiz-screen').style.display = 'block';
+  document.getElementById('quiz-level-label').textContent = `Nível ${lvl}`;
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const level = LEVELS[state.currentLevel];
+  const q = level.questions[state.currentQ];
+  const total = level.questions.length;
+  state.answered = false;
+  document.getElementById('feedback-box').style.display = 'none';
+  document.getElementById('next-btn').style.display = 'none';
+  document.getElementById('question-counter').textContent = `Pergunta ${state.currentQ + 1} de ${total}`;
+  document.getElementById('progress-fill').style.width = `${(state.currentQ / total) * 100}%`;
+  document.getElementById('question-text').textContent = q.q;
+  const list = document.getElementById('options-list');
+  list.innerHTML = '';
+  const letters = ['A','B','C','D'];
+  q.opts.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.innerHTML = `<span class="option-letter">${letters[i]}</span><span>${opt}</span>`;
+    btn.onclick = () => selectOption(i, btn);
+    list.appendChild(btn);
+  });
+}
+
+function selectOption(idx, btn) {
+  if (state.answered) return;
+  state.answered = true;
+  const q = LEVELS[state.currentLevel].questions[state.currentQ];
+  const allBtns = document.querySelectorAll('.option-btn');
+  allBtns.forEach(b => b.disabled = true);
+  const feedbackBox = document.getElementById('feedback-box');
+  if (idx === q.correct) {
+    state.score++;
+    btn.classList.add('correct');
+    feedbackBox.className = 'feedback-box correct';
+    document.getElementById('feedback-label').textContent = '✓ Correto';
+  } else {
+    btn.classList.add('wrong');
+    allBtns[q.correct].classList.add('reveal-correct');
+    feedbackBox.className = 'feedback-box wrong';
+    document.getElementById('feedback-label').textContent = '✗ Incorreto';
+  }
+  const normHtml = q.norm ? `<span class="feedback-norm">📌 Base: ${q.norm}</span>` : '';
+  document.getElementById('feedback-text').innerHTML = q.feedback + normHtml;
+  feedbackBox.style.display = 'block';
+  const nextBtn = document.getElementById('next-btn');
+  const isLast = state.currentQ === LEVELS[state.currentLevel].questions.length - 1;
+  nextBtn.textContent = isLast ? 'Ver resultado →' : 'Próxima pergunta →';
+  nextBtn.style.display = 'block';
+}
+
+function nextQuestion() {
+  state.currentQ++;
+  if (state.currentQ >= LEVELS[state.currentLevel].questions.length) showResult();
+  else renderQuestion();
+}
+
+function showResult() {
+  document.getElementById('quiz-screen').style.display = 'none';
+  document.getElementById('result-screen').style.display = 'block';
+  const lvl = state.currentLevel;
+  const total = LEVELS[lvl].questions.length;
+  const pct = Math.round((state.score / total) * 100);
+  const passed = pct >= PASS;
+  document.getElementById('result-score').textContent = `${state.score}/${total}`;
+  document.getElementById('result-score-label').textContent = `${pct}% de acerto`;
+  let emoji, title, msg;
+  if (pct === 100) { emoji = '🏆'; title = 'Perfeito!'; msg = 'Gabaritou este nível.'; }
+  else if (pct >= PASS) { emoji = '🎯'; title = 'Aprovado!'; msg = 'Sólido. Revise os itens que escaparam e siga em frente.'; }
+  else { emoji = '📖'; title = 'Revisar antes de continuar'; msg = `Abaixo de ${PASS}%. É preciso ${PASS}% para desbloquear o próximo nível.`; }
+  document.getElementById('result-emoji').textContent = emoji;
+  document.getElementById('result-title').textContent = title;
+  document.getElementById('result-message').textContent = msg;
+
+  if (passed) {
+    completed[lvl] = true;
+    if (lvl < MAX_LEVEL) unlocked[lvl + 1] = true;
+  }
+  const nextBtn = document.getElementById('next-level-btn');
+  if (lvl >= MAX_LEVEL) {
+    nextBtn.textContent = passed ? 'Concluído ✓' : 'Refazer para concluir';
+    nextBtn.disabled = passed;
+  } else {
+    nextBtn.textContent = 'Próximo nível →';
+    nextBtn.disabled = !passed;
+  }
+  updateLevelCards();
+}
+
+function updateLevelCards() {
+  for (let lvl = 1; lvl <= MAX_LEVEL; lvl++) {
+    const card = document.getElementById('card-' + lvl);
+    const status = document.getElementById('status-' + lvl);
+    card.classList.remove('completed', 'locked');
+    card.onclick = null;
+    if (completed[lvl]) {
+      card.classList.add('completed');
+      status.className = 'level-status done';
+      status.textContent = '✓ Concluído';
+      card.onclick = () => startLevel(lvl);
+    } else if (unlocked[lvl]) {
+      status.className = 'level-status available';
+      status.textContent = 'Disponível';
+      card.onclick = () => startLevel(lvl);
+    } else {
+      card.classList.add('locked');
+      status.className = 'level-status locked-txt';
+      status.textContent = '🔒 Bloqueado';
+    }
+  }
+  const allDone = Object.keys(completed).every(k => completed[k]);
+  document.getElementById('feedback-banner').style.display = allDone ? 'block' : 'none';
+}
+
+function retryLevel() { startLevel(state.currentLevel); }
+
+function goNextLevel() {
+  const next = state.currentLevel + 1;
+  if (next <= MAX_LEVEL && unlocked[next]) startLevel(next);
+  else backToMenu();
+}
+
+function backToMenu() {
+  document.getElementById('quiz-screen').style.display = 'none';
+  document.getElementById('result-screen').style.display = 'none';
+  document.getElementById('level-select').style.display = 'block';
+  updateLevelCards();
+}
+
+updateLevelCards();
+</script>
+
+<footer style="width:100%; max-width:720px; text-align:center; margin-top:40px; padding-top:18px; border-top:1px solid var(--border); font-size:12px; color:var(--text-dimmer); line-height:1.6;">
+  Claudio Marinho de Albuquerque · CRP-02/20303 · PsicoQuiz
+</footer>
+</body>
+</html>
