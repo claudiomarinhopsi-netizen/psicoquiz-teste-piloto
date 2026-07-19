@@ -366,11 +366,13 @@ function showResult() {
   }
   const nextBtn = document.getElementById('next-level-btn');
   if (lvl >= MAX_LEVEL) {
-    nextBtn.textContent = passed ? 'Concluído ✓' : 'Refazer para concluir';
-    nextBtn.disabled = passed;
+    nextBtn.textContent = passed ? 'Concluído ✓ — ver resumo' : 'Refazer para concluir';
+    nextBtn.disabled = false;
+    nextBtn.onclick = passed ? backToMenu : retryLevel;
   } else {
     nextBtn.textContent = 'Próximo nível →';
     nextBtn.disabled = !passed;
+    nextBtn.onclick = goNextLevel;
   }
   updateLevelCards();
 }
